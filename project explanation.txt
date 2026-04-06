@@ -1,0 +1,2031 @@
+
+after installing python 
+
+pip install pandas
+pip install requests
+pip install streamlit
+pip install yfinance
+
+pip --version
+pip install pandas requests streamlit yfinance
+python --version
+
+python --version
+python -m pip install pandas requests streamlit yfinance
+
+
+cd Desktop/cross_market_project
+
+python main.py
+
+save this code in notepad
+
+import requests
+import pandas as pd
+
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+
+response = requests.get(url)
+data = response.json()
+
+df = pd.DataFrame(data)
+
+print(df[['id', 'symbol', 'name', 'current_price']])
+
+run as python main.py
+
+after run 
+
+cd Desktop\cross_market_project
+
+C:\Users\yourname\Desktop\cross_market_project>
+
+python main.py
+
+
+
+
+after api done enter tis code
+
+import requests
+import pandas as pd
+
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+
+response = requests.get(url)
+data = response.json()
+
+df = pd.DataFrame(data)
+
+# Show data
+print(df[['id', 'symbol', 'name', 'current_price']])
+
+# Save to CSV file
+df.to_csv("crypto_data.csv", index=False)
+
+print("Data saved successfully!")
+
+
+crypto_data.csv  file saved in folder
+
+API done
+pulled crypto data from API
+saved it as crypto_data.csv
+
+That matches the data collection part
+
+open main.py and replace the code
+
+import requests
+import pandas as pd
+
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+
+response = requests.get(url)
+data = response.json()
+
+df = pd.DataFrame(data)
+
+# Keep useful columns
+df = df[['id', 'symbol', 'name', 'current_price', 'market_cap_rank']]
+
+# Sort by market cap rank
+df = df.sort_values('market_cap_rank')
+
+# Take top 3 coins
+top_3 = df.head(3)
+
+print("Top 3 coins:")
+print(top_3)
+
+# Save full data
+df.to_csv("crypto_data.csv", index=False)
+
+# Save top 3 data
+top_3.to_csv("top_3_coins.csv", index=False)
+
+print("Top 3 coins saved successfully!")
+
+run  
+python main.py
+
+dataset saved
+selected top 3 coins
+
+
+
+START OF THE REAL ANALYSIS
+
+1. Get 1-year price data for TOP 3 coins
+
+Take each coin (bitcoin, ethereum, tether)
+ Get daily prices for 1 year
+
+Need to update the code
+
+import requests
+import pandas as pd
+
+# Step 1: Get top coins
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+data = requests.get(url).json()
+df = pd.DataFrame(data)
+
+df = df[['id', 'symbol', 'name', 'market_cap_rank']]
+df = df.sort_values('market_cap_rank')
+
+top_3 = df.head(3)
+
+print("Top 3 coins:")
+print(top_3)
+
+# Step 2: Get historical data
+all_data = []
+
+for coin in top_3['id']:
+    print(f"Fetching data for {coin}...")
+
+    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=inr&days=365"
+    data = requests.get(url).json()
+
+    prices = data['prices']
+
+    for p in prices:
+        date = pd.to_datetime(p[0], unit='ms').date()
+        price = p[1]
+
+        all_data.append({
+            "coin_id": coin,
+            "date": date,
+            "price": price
+        })
+
+# Convert to DataFrame
+price_df = pd.DataFrame(all_data)
+
+print(price_df.head())
+
+# Save file
+price_df.to_csv("crypto_price_1year.csv", index=False)
+
+print("Historical data saved!")
+
+run 
+
+python main.py
+
+next one year file saved in folder
+so crypto file is saved
+
+NEXT
+
+OIL PRICE DATA
+
+next replace the code with
+
+import requests
+import pandas as pd
+
+# -----------------------------
+# 1. TOP 3 CRYPTO COINS
+# -----------------------------
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+data = requests.get(url).json()
+df = pd.DataFrame(data)
+
+df = df[['id', 'symbol', 'name', 'market_cap_rank']]
+df = df.sort_values('market_cap_rank')
+top_3 = df.head(3)
+
+print("Top 3 coins:")
+print(top_3)
+
+# -----------------------------
+# 2. HISTORICAL CRYPTO PRICES
+# -----------------------------
+all_data = []
+
+for coin in top_3['id']:
+    print(f"Fetching crypto history for {coin}...")
+
+    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=inr&days=365"
+    data = requests.get(url).json()
+
+    prices = data['prices']
+
+    for p in prices:
+        date = pd.to_datetime(p[0], unit='ms').date()
+        price = p[1]
+
+        all_data.append({
+            "coin_id": coin,
+            "date": date,
+            "price": price
+        })
+
+price_df = pd.DataFrame(all_data)
+price_df.to_csv("crypto_price_1year.csv", index=False)
+
+print("Crypto history saved!")
+
+# -----------------------------
+# 3. OIL PRICE DATA
+# -----------------------------
+oil_url = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
+oil_df = pd.read_csv(oil_url)
+
+print("\nOil data first 5 rows:")
+print(oil_df.head())
+
+# Convert date column
+oil_df['Date'] = pd.to_datetime(oil_df['Date'])
+
+# Filter Jan 2020 to Jan 2026
+oil_df = oil_df[
+    (oil_df['Date'] >= '2020-01-01') &
+    (oil_df['Date'] <= '2026-01-31')
+]
+
+# Rename columns
+oil_df = oil_df.rename(columns={
+    'Date': 'date',
+    'Price': 'price_usd'
+})
+
+# Save oil data
+oil_df.to_csv("oil_prices.csv", index=False)
+
+print("\nOil data saved successfully!")
+print(oil_df.head())
+
+run 
+
+python main.py
+
+oil_price.csv got savd
+
+NEXT 
+COLLECT STOCK MARKET DATA
+
+replace code with
+
+import requests
+import pandas as pd
+import yfinance as yf
+
+# -----------------------------
+# 1. TOP 3 CRYPTO COINS
+# -----------------------------
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+data = requests.get(url).json()
+df = pd.DataFrame(data)
+
+df = df[['id', 'symbol', 'name', 'market_cap_rank']]
+df = df.sort_values('market_cap_rank')
+top_3 = df.head(3)
+
+print("Top 3 coins:")
+print(top_3)
+
+# -----------------------------
+# 2. HISTORICAL CRYPTO PRICES
+# -----------------------------
+all_data = []
+
+for coin in top_3['id']:
+    print(f"Fetching crypto history for {coin}...")
+    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=inr&days=365"
+    data = requests.get(url).json()
+
+    prices = data['prices']
+
+    for p in prices:
+        date = pd.to_datetime(p[0], unit='ms').date()
+        price = p[1]
+
+        all_data.append({
+            "coin_id": coin,
+            "date": date,
+            "price": price
+        })
+
+price_df = pd.DataFrame(all_data)
+price_df.to_csv("crypto_price_1year.csv", index=False)
+print("Crypto history saved!")
+
+# -----------------------------
+# 3. OIL PRICE DATA
+# -----------------------------
+oil_url = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
+oil_df = pd.read_csv(oil_url)
+
+oil_df['Date'] = pd.to_datetime(oil_df['Date'])
+oil_df = oil_df[
+    (oil_df['Date'] >= '2020-01-01') &
+    (oil_df['Date'] <= '2026-01-31')
+]
+
+oil_df = oil_df.rename(columns={
+    'Date': 'date',
+    'Price': 'price_usd'
+})
+
+oil_df.to_csv("oil_prices.csv", index=False)
+print("Oil data saved!")
+
+# -----------------------------
+# 4. STOCK PRICE DATA
+# -----------------------------
+tickers = ["^GSPC", "^IXIC", "^NSEI"]
+stock_list = []
+
+for ticker in tickers:
+    print(f"Fetching stock data for {ticker}...")
+    stock_df = yf.download(ticker, start="2020-01-01", end="2025-09-30")
+
+    stock_df = stock_df.reset_index()
+
+    stock_df["ticker"] = ticker
+
+    stock_df = stock_df.rename(columns={
+        "Date": "date",
+        "Open": "open",
+        "High": "high",
+        "Low": "low",
+        "Close": "close",
+        "Volume": "volume"
+    })
+
+    stock_df = stock_df[['date', 'open', 'high', 'low', 'close', 'volume', 'ticker']]
+
+    stock_list.append(stock_df)
+
+final_stock_df = pd.concat(stock_list, ignore_index=True)
+
+final_stock_df.to_csv("stock_prices.csv", index=False)
+
+print("Stock data saved!")
+print(final_stock_df.head())
+
+run
+python main.py
+
+stock_prices.csv  got saved 
+
+
+SQL database part
+
+CSV files = loose papers
+SQL database = cupboard with drawers
+Tables = drawers
+
+Next step: create the database
+
+We will use SQLite because:
+
+easiest
+no separate install needed
+Python already supports it
+
+replace te code asusual
+
+import requests
+import pandas as pd
+import yfinance as yf
+import sqlite3
+
+# -----------------------------
+# 1. TOP 3 CRYPTO COINS
+# -----------------------------
+url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=inr&per_page=10"
+data = requests.get(url).json()
+df = pd.DataFrame(data)
+
+crypto_full = df[['id', 'symbol', 'name', 'current_price', 'market_cap', 'market_cap_rank',
+                  'total_volume', 'circulating_supply', 'total_supply', 'ath', 'atl', 'last_updated']].copy()
+
+crypto_full['date'] = pd.to_datetime(crypto_full['last_updated']).dt.date
+crypto_full = crypto_full.drop(columns=['last_updated'])
+
+top_3 = crypto_full.sort_values('market_cap_rank').head(3)[['id', 'symbol', 'name', 'market_cap_rank']]
+
+print("Top 3 coins:")
+print(top_3)
+
+# Save CSVs
+crypto_full.to_csv("crypto_data.csv", index=False)
+top_3.to_csv("top_3_coins.csv", index=False)
+
+# -----------------------------
+# 2. HISTORICAL CRYPTO PRICES
+# -----------------------------
+all_data = []
+
+for _, row in top_3.iterrows():
+    coin = row['id']
+    print(f"Fetching crypto history for {coin}...")
+
+    url = f"https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=inr&days=365"
+    data = requests.get(url).json()
+
+    prices = data['prices']
+
+    for p in prices:
+        date = pd.to_datetime(p[0], unit='ms').date()
+        price = p[1]
+
+        all_data.append({
+            "coin_id": coin,
+            "date": date,
+            "price_usd": price
+        })
+
+price_df = pd.DataFrame(all_data)
+price_df.to_csv("crypto_price_1year.csv", index=False)
+print("Crypto history saved!")
+
+# -----------------------------
+# 3. OIL PRICE DATA
+# -----------------------------
+oil_url = "https://raw.githubusercontent.com/datasets/oil-prices/main/data/wti-daily.csv"
+oil_df = pd.read_csv(oil_url)
+
+oil_df['Date'] = pd.to_datetime(oil_df['Date'])
+oil_df = oil_df[
+    (oil_df['Date'] >= '2020-01-01') &
+    (oil_df['Date'] <= '2026-01-31')
+]
+
+oil_df = oil_df.rename(columns={
+    'Date': 'date',
+    'Price': 'price_usd'
+})
+
+oil_df.to_csv("oil_prices.csv", index=False)
+print("Oil data saved!")
+
+# -----------------------------
+# -----------------------------
+# 4. STOCK PRICE DATA
+# -----------------------------
+tickers = ["^GSPC", "^IXIC", "^NSEI"]
+stock_list = []
+
+for ticker in tickers:
+    print(f"Fetching stock data for {ticker}...")
+
+    stock_df = yf.download(ticker, start="2020-01-01", end="2025-09-30", auto_adjust=False)
+
+    stock_df = stock_df.reset_index()
+
+    # flatten column names
+    stock_df.columns = [col[0] if isinstance(col, tuple) else col for col in stock_df.columns]
+
+    stock_df["ticker"] = ticker
+
+    stock_df = stock_df.rename(columns={
+        "Date": "date",
+        "Open": "open",
+        "High": "high",
+        "Low": "low",
+        "Close": "close",
+        "Volume": "volume"
+    })
+
+    stock_df = stock_df[['date', 'open', 'high', 'low', 'close', 'volume', 'ticker']]
+
+    stock_list.append(stock_df)
+
+final_stock_df = pd.concat(stock_list, ignore_index=True)
+
+final_stock_df.to_csv("stock_prices.csv", index=False)
+print("Stock data saved!")
+print(final_stock_df.head())# -----------------------------
+# 5. CREATE SQLITE DATABASE
+# -----------------------------
+conn = sqlite3.connect("cross_market.db")
+cursor = conn.cursor()
+
+# Create tables
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS cryptocurrencies (
+    id TEXT PRIMARY KEY,
+    symbol TEXT,
+    name TEXT,
+    current_price REAL,
+    market_cap REAL,
+    market_cap_rank INTEGER,
+    total_volume REAL,
+    circulating_supply REAL,
+    total_supply REAL,
+    ath REAL,
+    atl REAL,
+    date TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS crypto_prices (
+    coin_id TEXT,
+    date TEXT,
+    price_usd REAL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS oil_prices (
+    date TEXT PRIMARY KEY,
+    price_usd REAL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS stock_prices (
+    date TEXT,
+    open REAL,
+    high REAL,
+    low REAL,
+    close REAL,
+    volume REAL,
+    ticker TEXT
+)
+""")
+
+conn.commit()
+
+# Insert data
+crypto_full.to_sql("cryptocurrencies", conn, if_exists="replace", index=False)
+price_df.to_sql("crypto_prices", conn, if_exists="replace", index=False)
+oil_df.to_sql("oil_prices", conn, if_exists="replace", index=False)
+final_stock_df.to_sql("stock_prices", conn, if_exists="replace", index=False)
+
+conn.commit()
+conn.close()
+
+print("Database created successfully!")
+
+run
+python main.py
+
+database created successfully
+
+cross_market.db file created in folder(sql database)
+
+create tables and insert records into SQL  - done
+
+
+create one more file
+
+Inside cross_market_project folder, create a new file named:
+
+query_test.py
+
+type in cmd
+python query_test.py
+
+These queries come directly from the kind of SQL tasks listed in your PDF:
+
+top cryptocurrencies by market cap
+highest Bitcoin price
+average oil price per year
+highest NASDAQ closing price
+Super simple meaning
+
+SELECT = take data
+FROM = from which table
+WHERE = only this condition
+ORDER BY = sort
+LIMIT = take only few rows
+MAX() = highest value
+AVG() = average
+GROUP BY = group similar rows
+
+import sqlite3
+import pandas as pd
+
+# Connect to database
+conn = sqlite3.connect("cross_market.db")
+query_check = "PRAGMA table_info(stock_prices);"
+print(pd.read_sql_query(query_check, conn))
+
+# Query 1: Top 3 cryptocurrencies by market cap
+query1 = """
+SELECT id, symbol, name, market_cap, market_cap_rank
+FROM cryptocurrencies
+ORDER BY market_cap DESC
+LIMIT 3;
+"""
+
+result1 = pd.read_sql_query(query1, conn)
+
+print("Top 3 cryptocurrencies by market cap:")
+print(result1)
+print("-" * 50)
+
+# Query 2: Highest daily price of Bitcoin in last 365 days
+query2 = """
+SELECT coin_id, MAX(price_usd) AS highest_price
+FROM crypto_prices
+WHERE coin_id = 'bitcoin';
+"""
+
+result2 = pd.read_sql_query(query2, conn)
+
+print("Highest Bitcoin price:")
+print(result2)
+print("-" * 50)
+
+# Query 3: Average oil price per year
+query3 = """
+SELECT strftime('%Y', date) AS year,
+       AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+GROUP BY year
+ORDER BY year;
+"""
+
+result3 = pd.read_sql_query(query3, conn)
+
+print("Average oil price per year:")
+print(result3)
+print("-" * 50)
+
+# Query 4: Highest closing price for NASDAQ
+query4 = """
+SELECT MAX(close) AS highest_close
+FROM stock_prices;
+"""
+
+result4 = pd.read_sql_query(query4, conn)
+
+print("Highest NASDAQ closing price:")
+print(result4)
+print("-" * 50)
+
+conn.close()
+
+run
+
+python query_test.py
+
+successfully completed:
+
+API data collection
+CSV saving
+top 3 crypto selection
+historical crypto prices
+oil prices
+stock prices
+SQL database creation
+SQL query testing
+
+Top 3 crypto by market cap → worked
+Highest Bitcoin price → worked
+Average oil price per year → worked
+Highest NASDAQ closing price → worked
+
+So database is correct now.
+
+
+Next step: build the Streamlit app
+
+Streamlit app should have pages for:
+
+filters and data exploration
+SQL query runner
+top 3 crypto analysis
+
+need to create a new file inside the folder
+
+app.py
+
+type the code
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Cross-Market Analysis Dashboard")
+
+# connect database
+conn = sqlite3.connect("cross_market.db")
+
+st.header("1. Top 3 Cryptocurrencies by Market Cap")
+
+query1 = """
+SELECT id, symbol, name, market_cap, market_cap_rank
+FROM cryptocurrencies
+ORDER BY market_cap DESC
+LIMIT 3;
+"""
+
+df1 = pd.read_sql_query(query1, conn)
+st.dataframe(df1)
+
+st.header("2. Highest Bitcoin Price")
+
+query2 = """
+SELECT coin_id, MAX(price_usd) AS highest_price
+FROM crypto_prices
+WHERE coin_id = 'bitcoin';
+"""
+
+df2 = pd.read_sql_query(query2, conn)
+st.dataframe(df2)
+
+st.header("3. Average Oil Price Per Year")
+
+query3 = """
+SELECT strftime('%Y', date) AS year,
+       AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+GROUP BY year
+ORDER BY year;
+"""
+
+df3 = pd.read_sql_query(query3, conn)
+st.dataframe(df3)
+
+st.header("4. Highest NASDAQ Closing Price")
+
+query4 = """
+SELECT ticker, MAX(close) AS highest_close
+FROM stock_prices
+WHERE ticker = '^IXIC';
+"""
+
+df4 = pd.read_sql_query(query4, conn)
+st.dataframe(df4)
+
+conn.close()
+
+run as 
+ python -m streamlit run app.py
+
+
+successfully created:
+
+API data pipeline
+SQL database
+SQL queries
+Live dashboard (Streamlit)
+
+Next Feature: Select coin + show chart
+
+We’ll add:
+👉 Dropdown (Bitcoin / Ethereum / Tether)
+👉 Price chart 📈
+
+
+replace the code
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Cross-Market Analysis Dashboard")
+
+# connect database
+conn = sqlite3.connect("cross_market.db")
+
+# -----------------------------
+# TOP 3 CRYPTO
+# -----------------------------
+st.header("Top 3 Cryptocurrencies")
+
+query1 = """
+SELECT id, symbol, name, market_cap, market_cap_rank
+FROM cryptocurrencies
+ORDER BY market_cap DESC
+LIMIT 3;
+"""
+
+df1 = pd.read_sql_query(query1, conn)
+st.dataframe(df1)
+
+# -----------------------------
+# SELECT COIN
+# -----------------------------
+st.header("Crypto Price Trend")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+query2 = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+ORDER BY date;
+"""
+
+df2 = pd.read_sql_query(query2, conn)
+
+st.line_chart(df2.set_index("date"))
+
+# -----------------------------
+# OIL DATA
+# -----------------------------
+st.header("Average Oil Price Per Year")
+
+query3 = """
+SELECT strftime('%Y', date) AS year,
+       AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+GROUP BY year
+ORDER BY year;
+"""
+
+df3 = pd.read_sql_query(query3, conn)
+st.dataframe(df3)
+
+# -----------------------------
+# STOCK DATA
+# -----------------------------
+st.header("NASDAQ Highest Closing Price")
+
+query4 = """
+SELECT ticker, MAX(close) AS highest_close
+FROM stock_prices
+WHERE ticker = '^IXIC';
+"""
+
+df4 = pd.read_sql_query(query4, conn)
+st.dataframe(df4)
+
+conn.close()
+
+run as 
+
+Next Feature: Select coin + show chart
+
+We’ll add:
+👉 Dropdown (Bitcoin / Ethereum / Tether)
+👉 Price chart 📈
+
+in app.py replace the code
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Cross-Market Analysis Dashboard")
+
+# connect database
+conn = sqlite3.connect("cross_market.db")
+
+# -----------------------------
+# TOP 3 CRYPTO
+# -----------------------------
+st.header("Top 3 Cryptocurrencies")
+
+query1 = """
+SELECT id, symbol, name, market_cap, market_cap_rank
+FROM cryptocurrencies
+ORDER BY market_cap DESC
+LIMIT 3;
+"""
+
+df1 = pd.read_sql_query(query1, conn)
+st.dataframe(df1)
+
+# -----------------------------
+# SELECT COIN
+# -----------------------------
+st.header("Crypto Price Trend")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+query2 = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+ORDER BY date;
+"""
+
+df2 = pd.read_sql_query(query2, conn)
+
+st.line_chart(df2.set_index("date"))
+
+# -----------------------------
+# OIL DATA
+# -----------------------------
+st.header("Average Oil Price Per Year")
+
+query3 = """
+SELECT strftime('%Y', date) AS year,
+       AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+GROUP BY year
+ORDER BY year;
+"""
+
+df3 = pd.read_sql_query(query3, conn)
+st.dataframe(df3)
+
+# -----------------------------
+# STOCK DATA
+# -----------------------------
+st.header("NASDAQ Highest Closing Price")
+
+query4 = """
+SELECT ticker, MAX(close) AS highest_close
+FROM stock_prices
+WHERE ticker = '^IXIC';
+"""
+
+df4 = pd.read_sql_query(query4, conn)
+st.dataframe(df4)
+
+conn.close()
+
+run as 
+
+python -m streamlit run app.py
+
+
+you can see the streamlit graph and dropdown
+
+Data collection (API + CSV)
+✔ Data processing (Pandas)
+✔ Database (SQLite)
+✔ SQL queries
+✔ Interactive dashboard (Streamlit with dropdown + graph)
+
+
+Date filter + Multi-market comparison
+
+in app.py replace with
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Cross-Market Analysis Dashboard")
+
+conn = sqlite3.connect("cross_market.db")
+
+# -----------------------------
+# DATE FILTER
+# -----------------------------
+st.header("Select Date Range")
+
+start_date = st.date_input("Start Date")
+end_date = st.date_input("End Date")
+
+# -----------------------------
+# CRYPTO DROPDOWN + GRAPH
+# -----------------------------
+st.header("Crypto Price Trend")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+query_crypto = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+AND date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY date;
+"""
+
+df_crypto = pd.read_sql_query(query_crypto, conn)
+
+st.line_chart(df_crypto.set_index("date"))
+
+# -----------------------------
+# MULTI-MARKET COMPARISON
+# -----------------------------
+st.header("Bitcoin vs Oil vs S&P 500")
+
+query_compare = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price,
+       s.close AS sp500_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o ON c.date = o.date
+LEFT JOIN stock_prices s ON c.date = s.date AND s.ticker = '^GSPC'
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+df_compare = pd.read_sql_query(query_compare, conn)
+
+st.line_chart(df_compare.set_index("date"))
+
+conn.close()
+
+run as 
+
+python -m streamlit run app.py
+
+
+
+Replace this:
+start_date = st.date_input("Start Date")
+end_date = st.date_input("End Date")
+With this:
+start_date = st.date_input("Start Date", value=pd.to_datetime("2024-01-01"))
+end_date = st.date_input("End Date", value=pd.to_datetime("2025-01-01"))
+Add this before chart:
+
+if df_crypto.empty:
+    st.warning("No data available for selected date range")
+else:
+    st.line_chart(df_crypto.set_index("date"))
+❤️ Why this happened (important learning)
+
+👉 Your database has data
+👉 But filter removed everything
+
+This is called:
+“Filtering issue” (very common in real projects)
+
+
+lcation: cd C:\Users\user\Desktop\cross_market_project
+
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+# -----------------------------
+# PAGE SETTINGS
+# -----------------------------
+st.set_page_config(page_title="Cross-Market Analysis Dashboard", layout="wide")
+st.title("Cross-Market Analysis Dashboard")
+
+# -----------------------------
+# DATABASE CONNECTION
+# -----------------------------
+conn = sqlite3.connect("cross_market.db")
+
+# -----------------------------
+# DATE FILTER
+# -----------------------------
+st.header("Select Date Range")
+
+start_date = st.date_input("Start Date", value=pd.to_datetime("2025-04-01"))
+end_date = st.date_input("End Date", value=pd.to_datetime("2026-03-01"))
+
+# -----------------------------
+# MARKET SUMMARY
+# -----------------------------
+st.header("Market Summary")
+
+query_btc_avg = f"""
+SELECT AVG(price_usd) AS avg_btc_price
+FROM crypto_prices
+WHERE coin_id = 'bitcoin'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_oil_avg = f"""
+SELECT AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+WHERE date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_sp500_avg = f"""
+SELECT AVG(close) AS avg_sp500_close
+FROM stock_prices
+WHERE ticker = '^GSPC'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_nifty_avg = f"""
+SELECT AVG(close) AS avg_nifty_close
+FROM stock_prices
+WHERE ticker = '^NSEI'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+btc_avg = pd.read_sql_query(query_btc_avg, conn).iloc[0, 0]
+oil_avg = pd.read_sql_query(query_oil_avg, conn).iloc[0, 0]
+sp500_avg = pd.read_sql_query(query_sp500_avg, conn).iloc[0, 0]
+nifty_avg = pd.read_sql_query(query_nifty_avg, conn).iloc[0, 0]
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("Bitcoin Avg Price", f"{btc_avg:,.2f}" if pd.notna(btc_avg) else "No data")
+col2.metric("Oil Avg Price", f"{oil_avg:,.2f}" if pd.notna(oil_avg) else "No data")
+col3.metric("S&P 500 Avg Close", f"{sp500_avg:,.2f}" if pd.notna(sp500_avg) else "No data")
+col4.metric("NIFTY Avg Close", f"{nifty_avg:,.2f}" if pd.notna(nifty_avg) else "No data")
+
+# -----------------------------
+# CRYPTO PRICE TREND
+# -----------------------------
+st.header("Crypto Price Trend")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+query_crypto = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+AND date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY date;
+"""
+
+df_crypto = pd.read_sql_query(query_crypto, conn)
+
+if df_crypto.empty:
+    st.warning("No crypto data available for selected date range.")
+else:
+    df_crypto["date"] = pd.to_datetime(df_crypto["date"])
+    df_crypto["price_usd"] = pd.to_numeric(df_crypto["price_usd"], errors="coerce")
+
+    crypto_chart = df_crypto[["date", "price_usd"]].copy()
+    crypto_chart = crypto_chart.set_index("date")
+
+    st.line_chart(crypto_chart, y="price_usd")
+
+    st.subheader(f"{coin.capitalize()} Price Table")
+    st.dataframe(df_crypto, use_container_width=True)
+
+# -----------------------------
+# MULTI-MARKET COMPARISON
+# -----------------------------
+st.header("Bitcoin vs Oil vs S&P 500")
+st.info("This chart compares Bitcoin, Oil, and S&P 500 prices over time.")
+
+query_compare = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price,
+       s.close AS sp500_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o
+       ON c.date = o.date
+LEFT JOIN stock_prices s
+       ON c.date = s.date
+      AND s.ticker = '^GSPC'
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+
+df_compare = pd.read_sql_query(query_compare, conn)
+
+if df_compare.empty:
+    st.warning("No comparison data available for selected date range.")
+else:
+    df_compare["date"] = pd.to_datetime(df_compare["date"])
+    df_compare["bitcoin_price"] = pd.to_numeric(df_compare["bitcoin_price"], errors="coerce")
+    df_compare["oil_price"] = pd.to_numeric(df_compare["oil_price"], errors="coerce")
+    df_compare["sp500_price"] = pd.to_numeric(df_compare["sp500_price"], errors="coerce")
+
+    compare_chart = df_compare[["date", "bitcoin_price", "oil_price", "sp500_price"]].copy()
+    compare_chart = compare_chart.set_index("date")
+
+    st.line_chart(compare_chart, y=["bitcoin_price", "oil_price", "sp500_price"])
+
+    st.subheader("Comparison Data Table")
+    st.dataframe(df_compare, use_container_width=True)
+
+# -----------------------------
+# DAILY MARKET SNAPSHOT
+# -----------------------------
+st.header("Daily Market Snapshot")
+
+query_snapshot = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price,
+       s1.close AS sp500_price,
+       s2.close AS nifty_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o
+       ON c.date = o.date
+LEFT JOIN stock_prices s1
+       ON c.date = s1.date
+      AND s1.ticker = '^GSPC'
+LEFT JOIN stock_prices s2
+       ON c.date = s2.date
+      AND s2.ticker = '^NSEI'
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+
+df_snapshot = pd.read_sql_query(query_snapshot, conn)
+
+if df_snapshot.empty:
+    st.warning("No market snapshot data available.")
+else:
+    st.dataframe(df_snapshot, use_container_width=True)
+
+# -----------------------------
+# SQL QUERY RUNNER
+# -----------------------------
+st.header("SQL Query Runner")
+
+query_options = {
+    "Top 3 cryptocurrencies by market cap": """
+        SELECT id, symbol, name, market_cap, market_cap_rank
+        FROM cryptocurrencies
+        ORDER BY market_cap DESC
+        LIMIT 3;
+    """,
+    "Highest Bitcoin price": """
+        SELECT coin_id, MAX(price_usd) AS highest_price
+        FROM crypto_prices
+        WHERE coin_id = 'bitcoin';
+    """,
+    "Average oil price per year": """
+        SELECT strftime('%Y', date) AS year,
+               AVG(price_usd) AS avg_oil_price
+        FROM oil_prices
+        GROUP BY year
+        ORDER BY year;
+    """,
+    "Highest NASDAQ closing price": """
+        SELECT ticker, MAX(close) AS highest_close
+        FROM stock_prices
+        WHERE ticker = '^IXIC';
+    """
+}
+
+selected_query = st.selectbox("Choose a SQL query", list(query_options.keys()))
+
+if st.button("Run Query"):
+    result_df = pd.read_sql_query(query_options[selected_query], conn)
+    st.dataframe(result_df, use_container_width=True)
+
+# -----------------------------
+# END
+# -----------------------------
+conn.close()
+st.success("Project completed: Crypto vs Oil vs Stock Market Analysis using SQL & Streamlit")
+
+
+run
+
+
+
+
+
+
+
+✅ Data Collection
+Crypto API ✔
+Oil dataset ✔
+Stock data ✔
+✅ Data Processing
+Cleaned data ✔
+Selected top 3 coins ✔
+Historical data ✔
+✅ Database (SQL)
+Tables created ✔
+Data inserted ✔
+✅ SQL Analysis
+Queries executed ✔
+Results verified ✔
+✅ Dashboard (Streamlit)
+Date filter ✔
+Dropdown ✔
+Graphs ✔
+Comparison ✔
+Tables ✔
+SQL query runner ✔
+
+
+
+
+
+
+now we are going to make everyting into single paes as per pdf
+
+
+Step 1: create this folder structure
+
+Inside cross_market_project, make this:
+
+cross_market_project
+│
+├── app.py
+├── cross_market.db
+└── pages
+    ├── 1_Filters_and_Data_Exploration.py
+    ├── 2_SQL_Query_Runner.py
+    └── 3_Top_3_Crypto_Analysis.py
+
+🧩 STEP 1: Keep app.py SIMPLE
+
+👉 Open your app.py
+👉 DELETE everything inside
+👉 Paste ONLY this:
+
+import streamlit as st
+
+st.set_page_config(page_title="Cross-Market Analysis Dashboard")
+
+st.title("Cross-Market Analysis: Crypto, Oil & Stocks")
+
+st.write("""
+Welcome to the dashboard!
+
+Use the sidebar to navigate:
+- Filters and Data Exploration
+- SQL Query Runner
+- Top 3 Crypto Analysis
+""")
+
+👉 Save ✅
+
+🧩 STEP 2: Create “pages” folder
+
+Inside your project folder:
+
+👉 Right click → New Folder
+👉 Name it EXACTLY:
+
+pages
+🧩 STEP 3: Create first page
+
+Inside pages folder:
+
+👉 Create new file:
+
+1_Filters.py
+
+👉 Paste this:
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Filters and Data Exploration")
+
+conn = sqlite3.connect("cross_market.db")
+
+start_date = st.date_input("Start Date", value=pd.to_datetime("2025-04-01"))
+end_date = st.date_input("End Date", value=pd.to_datetime("2026-03-01"))
+
+st.header("Bitcoin vs Oil vs S&P 500")
+
+query = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o ON c.date = o.date
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+
+df = pd.read_sql_query(query, conn)
+
+if df.empty:
+    st.warning("No data")
+else:
+    df["date"] = pd.to_datetime(df["date"])
+    st.line_chart(df.set_index("date"))
+
+conn.close()
+🧩 STEP 4: Create second page
+
+Create:
+
+2_SQL.py
+
+👉 Paste:
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("SQL Query Runner")
+
+conn = sqlite3.connect("cross_market.db")
+
+query = """
+SELECT id, name, market_cap
+FROM cryptocurrencies
+ORDER BY market_cap DESC
+LIMIT 3;
+"""
+
+if st.button("Run Query"):
+    df = pd.read_sql_query(query, conn)
+    st.dataframe(df)
+
+conn.close()
+🧩 STEP 5: Create third page
+
+Create:
+
+3_Crypto.py
+
+👉 Paste:
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Crypto Analysis")
+
+conn = sqlite3.connect("cross_market.db")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+query = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+ORDER BY date;
+"""
+
+df = pd.read_sql_query(query, conn)
+
+if df.empty:
+    st.warning("No data")
+else:
+    df["date"] = pd.to_datetime(df["date"])
+    st.line_chart(df.set_index("date"))
+
+conn.close()
+▶️ STEP 6: Run again
+python -m streamlit run app.py
+
+
+
+What to change
+
+Inside your project folder, keep this structure:
+
+cross_market_project
+│
+├── app.py
+├── main.py
+├── cross_market.db
+└── pages
+    ├── 1_Filters_and_Data_Exploration.py
+    ├── 2_SQL_Query_Runner.py
+    └── 3_Top_3_Crypto_Analysis.py
+
+Your earlier names like 1_Filters.py, 2_SQL.py, 3_Crypto.py can work, but these longer names are better because they match the PDF wording.
+
+Put this in app.py
+
+Delete everything in app.py and paste this:
+
+import streamlit as st
+
+st.set_page_config(page_title="Cross-Market Analysis Dashboard", layout="wide")
+
+st.title("Cross-Market Analysis: Crypto, Oil & Stocks")
+
+st.write("""
+Welcome to the dashboard!
+
+Use the sidebar to navigate:
+- Filters and Data Exploration
+- SQL Query Runner
+- Top 3 Crypto Analysis
+""")
+Put this in pages/1_Filters_and_Data_Exploration.py
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Filters and Data Exploration")
+
+conn = sqlite3.connect("cross_market.db")
+
+start_date = st.date_input("Start Date", value=pd.to_datetime("2025-04-01"))
+end_date = st.date_input("End Date", value=pd.to_datetime("2026-03-01"))
+
+# Market summary
+st.subheader("Market Summary")
+
+query_btc_avg = f"""
+SELECT AVG(price_usd) AS avg_btc_price
+FROM crypto_prices
+WHERE coin_id = 'bitcoin'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_oil_avg = f"""
+SELECT AVG(price_usd) AS avg_oil_price
+FROM oil_prices
+WHERE date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_sp500_avg = f"""
+SELECT AVG(close) AS avg_sp500_close
+FROM stock_prices
+WHERE ticker = '^GSPC'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+query_nifty_avg = f"""
+SELECT AVG(close) AS avg_nifty_close
+FROM stock_prices
+WHERE ticker = '^NSEI'
+AND date BETWEEN '{start_date}' AND '{end_date}';
+"""
+
+btc_avg = pd.read_sql_query(query_btc_avg, conn).iloc[0, 0]
+oil_avg = pd.read_sql_query(query_oil_avg, conn).iloc[0, 0]
+sp500_avg = pd.read_sql_query(query_sp500_avg, conn).iloc[0, 0]
+nifty_avg = pd.read_sql_query(query_nifty_avg, conn).iloc[0, 0]
+
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Bitcoin Avg Price", f"{btc_avg:,.2f}" if pd.notna(btc_avg) else "No data")
+col2.metric("Oil Avg Price", f"{oil_avg:,.2f}" if pd.notna(oil_avg) else "No data")
+col3.metric("S&P 500 Avg Close", f"{sp500_avg:,.2f}" if pd.notna(sp500_avg) else "No data")
+col4.metric("NIFTY Avg Close", f"{nifty_avg:,.2f}" if pd.notna(nifty_avg) else "No data")
+
+# Comparison chart
+st.subheader("Bitcoin vs Oil vs S&P 500")
+
+query_compare = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price,
+       s.close AS sp500_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o ON c.date = o.date
+LEFT JOIN stock_prices s ON c.date = s.date AND s.ticker = '^GSPC'
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+
+df_compare = pd.read_sql_query(query_compare, conn)
+
+if df_compare.empty:
+    st.warning("No data available")
+else:
+    df_compare["date"] = pd.to_datetime(df_compare["date"])
+    df_compare["bitcoin_price"] = pd.to_numeric(df_compare["bitcoin_price"], errors="coerce")
+    df_compare["oil_price"] = pd.to_numeric(df_compare["oil_price"], errors="coerce")
+    df_compare["sp500_price"] = pd.to_numeric(df_compare["sp500_price"], errors="coerce")
+    st.line_chart(df_compare.set_index("date"))
+
+# Daily market snapshot
+st.subheader("Daily Market Snapshot")
+
+query_snapshot = f"""
+SELECT c.date,
+       c.price_usd AS bitcoin_price,
+       o.price_usd AS oil_price,
+       s1.close AS sp500_price,
+       s2.close AS nifty_price
+FROM crypto_prices c
+LEFT JOIN oil_prices o ON c.date = o.date
+LEFT JOIN stock_prices s1 ON c.date = s1.date AND s1.ticker = '^GSPC'
+LEFT JOIN stock_prices s2 ON c.date = s2.date AND s2.ticker = '^NSEI'
+WHERE c.coin_id = 'bitcoin'
+AND c.date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY c.date;
+"""
+
+df_snapshot = pd.read_sql_query(query_snapshot, conn)
+
+if df_snapshot.empty:
+    st.warning("No market snapshot data")
+else:
+    st.dataframe(df_snapshot, use_container_width=True)
+
+conn.close()
+Put this in pages/2_SQL_Query_Runner.py
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("SQL Query Runner")
+
+conn = sqlite3.connect("cross_market.db")
+
+query_options = {
+    "Top 3 cryptocurrencies by market cap": """
+        SELECT id, symbol, name, market_cap, market_cap_rank
+        FROM cryptocurrencies
+        ORDER BY market_cap DESC
+        LIMIT 3;
+    """,
+    "Highest Bitcoin price": """
+        SELECT coin_id, MAX(price_usd) AS highest_price
+        FROM crypto_prices
+        WHERE coin_id = 'bitcoin';
+    """,
+    "Average oil price per year": """
+        SELECT strftime('%Y', date) AS year,
+               AVG(price_usd) AS avg_oil_price
+        FROM oil_prices
+        GROUP BY year
+        ORDER BY year;
+    """,
+    "Highest NASDAQ closing price": """
+        SELECT ticker, MAX(close) AS highest_close
+        FROM stock_prices
+        WHERE ticker = '^IXIC';
+    """
+}
+
+selected_query = st.selectbox("Choose a SQL query", list(query_options.keys()))
+
+if st.button("Run Query"):
+    df = pd.read_sql_query(query_options[selected_query], conn)
+    st.dataframe(df, use_container_width=True)
+
+conn.close()
+Put this in pages/3_Top_3_Crypto_Analysis.py
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.title("Top 3 Crypto Analysis")
+
+conn = sqlite3.connect("cross_market.db")
+
+coin = st.selectbox("Select Coin", ["bitcoin", "ethereum", "tether"])
+
+start_date = st.date_input("Start Date", value=pd.to_datetime("2025-04-01"), key="crypto_start")
+end_date = st.date_input("End Date", value=pd.to_datetime("2026-03-01"), key="crypto_end")
+
+query = f"""
+SELECT date, price_usd
+FROM crypto_prices
+WHERE coin_id = '{coin}'
+AND date BETWEEN '{start_date}' AND '{end_date}'
+ORDER BY date;
+"""
+
+df = pd.read_sql_query(query, conn)
+
+if df.empty:
+    st.warning("No data available")
+else:
+    df["date"] = pd.to_datetime(df["date"])
+    df["price_usd"] = pd.to_numeric(df["price_usd"], errors="coerce")
+    st.line_chart(df.set_index("date")[["price_usd"]])
+    st.dataframe(df, use_container_width=True)
+
+conn.close()
+Final run command
+
+run
+
+python -m streamlit run app.py
+
+
+
+
+for all queries
+
+import streamlit as st
+import sqlite3
+import pandas as pd
+
+st.set_page_config(page_title="SQL Query Runner", layout="wide")
+st.title("SQL Query Runner")
+
+st.write("Choose any SQL query from the dropdown and click **Run Query**.")
+
+# -----------------------------
+# DATABASE CONNECTION
+# -----------------------------
+conn = sqlite3.connect("cross_market.db")
+
+# -----------------------------
+# ALL SQL QUERIES
+# -----------------------------
+query_options = {
+
+    # =========================================================
+    # 1) cryptocurrencies
+    # =========================================================
+    "1. Top 3 cryptocurrencies by market cap": """
+        SELECT id, symbol, name, market_cap, market_cap_rank
+        FROM cryptocurrencies
+        ORDER BY market_cap DESC
+        LIMIT 3;
+    """,
+
+    "2. Coins where circulating supply exceeds 90% of total supply": """
+        SELECT id, symbol, name, circulating_supply, total_supply
+        FROM cryptocurrencies
+        WHERE total_supply IS NOT NULL
+          AND total_supply > 0
+          AND circulating_supply >= 0.9 * total_supply;
+    """,
+
+    "3. Coins within 10% of ATH": """
+        SELECT id, symbol, name, current_price, ath
+        FROM cryptocurrencies
+        WHERE ath IS NOT NULL
+          AND ath > 0
+          AND current_price >= 0.9 * ath;
+    """,
+
+    "4. Average market cap rank of coins with volume above 1B": """
+        SELECT AVG(market_cap_rank) AS avg_market_cap_rank
+        FROM cryptocurrencies
+        WHERE total_volume > 1000000000;
+    """,
+
+    "5. Most recently updated coin": """
+        SELECT id, symbol, name, date
+        FROM cryptocurrencies
+        ORDER BY date DESC
+        LIMIT 1;
+    """,
+
+    # =========================================================
+    # 2) crypto_prices
+    # =========================================================
+    "6. Highest daily price of Bitcoin in last 365 days": """
+        SELECT coin_id, MAX(price_usd) AS highest_price
+        FROM crypto_prices
+        WHERE coin_id = 'bitcoin';
+    """,
+
+    "7. Average daily price of Ethereum in past 1 year": """
+        SELECT coin_id, AVG(price_usd) AS avg_price
+        FROM crypto_prices
+        WHERE coin_id = 'ethereum';
+    """,
+
+    "8. Bitcoin daily price trend in January 2025": """
+        SELECT date, price_usd
+        FROM crypto_prices
+        WHERE coin_id = 'bitcoin'
+          AND date BETWEEN '2025-01-01' AND '2025-01-31'
+        ORDER BY date;
+    """,
+
+    "9. Coin with highest average price over 1 year": """
+        SELECT coin_id, AVG(price_usd) AS avg_price
+        FROM crypto_prices
+        GROUP BY coin_id
+        ORDER BY avg_price DESC
+        LIMIT 1;
+    """,
+
+    "10. % change in Bitcoin price between Sep 2024 and Sep 2025": """
+        SELECT
+            ROUND(
+                (
+                    (
+                        SELECT AVG(price_usd)
+                        FROM crypto_prices
+                        WHERE coin_id = 'bitcoin'
+                          AND date BETWEEN '2025-09-01' AND '2025-09-30'
+                    )
+                    -
+                    (
+                        SELECT AVG(price_usd)
+                        FROM crypto_prices
+                        WHERE coin_id = 'bitcoin'
+                          AND date BETWEEN '2024-09-01' AND '2024-09-30'
+                    )
+                ) * 100.0 /
+                (
+                    SELECT AVG(price_usd)
+                    FROM crypto_prices
+                    WHERE coin_id = 'bitcoin'
+                      AND date BETWEEN '2024-09-01' AND '2024-09-30'
+                ),
+                2
+            ) AS pct_change;
+    """,
+
+    # =========================================================
+    # 3) oil_prices
+    # =========================================================
+    "11. Highest oil price in last 5 years": """
+        SELECT MAX(price_usd) AS highest_oil_price
+        FROM oil_prices
+        WHERE date >= date('now', '-5 years');
+    """,
+
+    "12. Average oil price per year": """
+        SELECT strftime('%Y', date) AS year,
+               AVG(price_usd) AS avg_oil_price
+        FROM oil_prices
+        GROUP BY year
+        ORDER BY year;
+    """,
+
+    "13. Oil prices during COVID crash (March-April 2020)": """
+        SELECT date, price_usd
+        FROM oil_prices
+        WHERE date BETWEEN '2020-03-01' AND '2020-04-30'
+        ORDER BY date;
+    """,
+
+    "14. Lowest oil price in last 10 years": """
+        SELECT MIN(price_usd) AS lowest_oil_price
+        FROM oil_prices
+        WHERE date >= date('now', '-10 years');
+    """,
+
+    "15. Oil price volatility per year (max-min)": """
+        SELECT strftime('%Y', date) AS year,
+               MAX(price_usd) AS max_price,
+               MIN(price_usd) AS min_price,
+               MAX(price_usd) - MIN(price_usd) AS volatility
+        FROM oil_prices
+        GROUP BY year
+        ORDER BY year;
+    """,
+
+    # =========================================================
+    # 4) stock_prices
+    # =========================================================
+    "16. All stock prices for ticker ^GSPC": """
+        SELECT *
+        FROM stock_prices
+        WHERE ticker = '^GSPC'
+        ORDER BY date;
+    """,
+
+    "17. Highest closing price for NASDAQ (^IXIC)": """
+        SELECT ticker, MAX(close) AS highest_close
+        FROM stock_prices
+        WHERE ticker = '^IXIC';
+    """,
+
+    "18. Top 5 days with highest price difference for S&P 500 (^GSPC)": """
+        SELECT date, high, low, (high - low) AS price_diff
+        FROM stock_prices
+        WHERE ticker = '^GSPC'
+        ORDER BY price_diff DESC
+        LIMIT 5;
+    """,
+
+    "19. Monthly average closing price for each ticker": """
+        SELECT ticker,
+               strftime('%Y-%m', date) AS month,
+               AVG(close) AS avg_close
+        FROM stock_prices
+        GROUP BY ticker, month
+        ORDER BY ticker, month;
+    """,
+
+    "20. Average trading volume of NSEI in 2024": """
+        SELECT ticker, AVG(volume) AS avg_volume
+        FROM stock_prices
+        WHERE ticker = '^NSEI'
+          AND date BETWEEN '2024-01-01' AND '2024-12-31';
+    """,
+
+    # =========================================================
+    # 5) Join Queries
+    # =========================================================
+    "21. Compare Bitcoin vs Oil average price in 2025": """
+        SELECT
+            (SELECT AVG(price_usd)
+             FROM crypto_prices
+             WHERE coin_id = 'bitcoin'
+               AND date BETWEEN '2025-01-01' AND '2025-12-31') AS avg_bitcoin_price,
+            (SELECT AVG(price_usd)
+             FROM oil_prices
+             WHERE date BETWEEN '2025-01-01' AND '2025-12-31') AS avg_oil_price;
+    """,
+
+    "22. Bitcoin vs S&P 500 on same dates": """
+        SELECT c.date,
+               c.price_usd AS bitcoin_price,
+               s.close AS sp500_close
+        FROM crypto_prices c
+        JOIN stock_prices s
+          ON c.date = s.date
+        WHERE c.coin_id = 'bitcoin'
+          AND s.ticker = '^GSPC'
+        ORDER BY c.date;
+    """,
+
+    "23. Ethereum and NASDAQ daily prices for 2025": """
+        SELECT c.date,
+               c.price_usd AS ethereum_price,
+               s.close AS nasdaq_close
+        FROM crypto_prices c
+        JOIN stock_prices s
+          ON c.date = s.date
+        WHERE c.coin_id = 'ethereum'
+          AND s.ticker = '^IXIC'
+          AND c.date BETWEEN '2025-01-01' AND '2025-12-31'
+        ORDER BY c.date;
+    """,
+
+    "24. Days when oil price spiked and Bitcoin price change": """
+        SELECT o.date,
+               o.price_usd AS oil_price,
+               c.price_usd AS bitcoin_price,
+               c.price_usd - LAG(c.price_usd) OVER (ORDER BY c.date) AS btc_price_change
+        FROM oil_prices o
+        JOIN crypto_prices c
+          ON o.date = c.date
+        WHERE c.coin_id = 'bitcoin'
+        ORDER BY o.price_usd DESC
+        LIMIT 20;
+    """,
+
+    "25. Top 3 coins daily trend vs NIFTY (^NSEI)": """
+        SELECT c.date,
+               c.coin_id,
+               c.price_usd AS crypto_price,
+               s.close AS nifty_close
+        FROM crypto_prices c
+        JOIN stock_prices s
+          ON c.date = s.date
+        WHERE c.coin_id IN ('bitcoin', 'ethereum', 'tether')
+          AND s.ticker = '^NSEI'
+        ORDER BY c.date, c.coin_id;
+    """,
+
+    "26. S&P 500 with crude oil on same dates": """
+        SELECT s.date,
+               s.close AS sp500_close,
+               o.price_usd AS oil_price
+        FROM stock_prices s
+        JOIN oil_prices o
+          ON s.date = o.date
+        WHERE s.ticker = '^GSPC'
+        ORDER BY s.date;
+    """,
+
+    "27. Bitcoin with crude oil on same dates": """
+        SELECT c.date,
+               c.price_usd AS bitcoin_price,
+               o.price_usd AS oil_price
+        FROM crypto_prices c
+        JOIN oil_prices o
+          ON c.date = o.date
+        WHERE c.coin_id = 'bitcoin'
+        ORDER BY c.date;
+    """,
+
+    "28. NASDAQ (^IXIC) with Ethereum trend": """
+        SELECT s.date,
+               s.close AS nasdaq_close,
+               c.price_usd AS ethereum_price
+        FROM stock_prices s
+        JOIN crypto_prices c
+          ON s.date = c.date
+        WHERE s.ticker = '^IXIC'
+          AND c.coin_id = 'ethereum'
+        ORDER BY s.date;
+    """,
+
+    "29. Top 3 crypto coins with stock indices for 2025": """
+        SELECT c.date,
+               c.coin_id,
+               c.price_usd,
+               s.ticker,
+               s.close
+        FROM crypto_prices c
+        JOIN stock_prices s
+          ON c.date = s.date
+        WHERE c.coin_id IN ('bitcoin', 'ethereum', 'tether')
+          AND s.ticker IN ('^GSPC', '^IXIC', '^NSEI')
+          AND c.date BETWEEN '2025-01-01' AND '2025-12-31'
+        ORDER BY c.date, c.coin_id, s.ticker;
+    """,
+
+    "30. Multi-join: stock, oil, and Bitcoin daily comparison": """
+        SELECT c.date,
+               c.price_usd AS bitcoin_price,
+               o.price_usd AS oil_price,
+               s1.close AS sp500_close,
+               s2.close AS nasdaq_close,
+               s3.close AS nifty_close
+        FROM crypto_prices c
+        LEFT JOIN oil_prices o
+               ON c.date = o.date
+        LEFT JOIN stock_prices s1
+               ON c.date = s1.date AND s1.ticker = '^GSPC'
+        LEFT JOIN stock_prices s2
+               ON c.date = s2.date AND s2.ticker = '^IXIC'
+        LEFT JOIN stock_prices s3
+               ON c.date = s3.date AND s3.ticker = '^NSEI'
+        WHERE c.coin_id = 'bitcoin'
+        ORDER BY c.date;
+    """
+}
+
+# -----------------------------
+# QUERY SELECTION
+# -----------------------------
+selected_query = st.selectbox("Choose a SQL query", list(query_options.keys()))
+
+if st.button("Run Query"):
+    try:
+        result_df = pd.read_sql_query(query_options[selected_query], conn)
+
+        if result_df.empty:
+            st.warning("No data returned for this query.")
+        else:
+            st.success("Query executed successfully.")
+            st.dataframe(result_df, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error running query: {e}")
+
+# -----------------------------
+# CLOSE CONNECTION
+# -----------------------------
+conn.close()
